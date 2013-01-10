@@ -14,7 +14,11 @@
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["assets/js/lib/jquery-1.8.3.min.js","spelling.js"]
+      "js": [
+        "assets/js/lib/jquery-1.8.3.min.js",
+        "assets/js/lib/jsdiff.js",
+        "spelling.js"
+      ]
     }
   ],
   "browser_action": {

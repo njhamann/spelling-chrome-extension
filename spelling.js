@@ -1,5 +1,8 @@
 var Spelling = function(){
-	
+	var text = {};
+	text.onfocus = null;
+	text.onblur = null;
+
 	var checkSpelling = function(str, callback){
 		
 		var xhr = new XMLHttpRequest();
@@ -15,11 +18,14 @@ var Spelling = function(){
 
 	var events = function(){
 		$('input, textarea').focus(function(){
+			text.onfocus = $(this).val();
 			console.log('text focus');
 		});
 
 		$('input, textarea').blur(function(){
-			checkSpelling($(this).val(), function(data){
+			text.onblur = $(this).val();
+			var val = text.onblur;
+			checkSpelling(val, function(data){
 				console.log(data);
 			});
 		});
@@ -30,5 +36,8 @@ var Spelling = function(){
 	}
 };
 
-var spelling = new Spelling();
-spelling.events();
+var addedWords = diffString(
+   "The red brown fox jumped over the rolling log.",
+   "The brown spotted fox leaped over the rolling log"
+);
+console.log(addedWords);
