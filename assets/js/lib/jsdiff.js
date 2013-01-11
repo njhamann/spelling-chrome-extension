@@ -19,7 +19,7 @@ function escape(s) {
     return n;
 }
 
-function diffString( o, n ) {
+function diffString(o, n) {
   var added = [];
   o = o.replace(/\s+$/, '');
   n = n.replace(/\s+$/, '');
