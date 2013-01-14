@@ -1,0 +1,81 @@
+.spelling-bee-marker{
+	z-index: 5000;
+	border-radius: 4px;
+	width: 6px;
+	height: 6px;
+	background-color: rgba(0,0,0,.5);
+}
+
+.spelling-bee-marker .spelling-tool{
+	font-family: sans-serif;
+	color:#333;
+	width:200px;
+	box-shadow: 0px 0px 10px rgba(0,0,0,.5);
+	overflow: hidden;
+	border-radius: 3px;
+	background-color: #FFF;
+}
+
+
+.spelling-bee-marker .spelling-tool .spelling-tool-correction-container{
+	margin:0;
+	background: #FFF;
+	height:70px;
+	width:100%;
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-correction-container p{
+	padding:7px 10px 10px 10px;
+	margin:0;
+	font-size:14px;
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-correction-container input{
+	margin:0px 10px 10px 10px;
+	border:1px solid #CCC;
+	padding:4px 5px 4px 5px;
+	width:168px;
+	font-size:12px;
+
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-button-container{
+	margin:0;
+	background: #666;
+	height:30px;
+	width:100%;
+}
+.spelling-bee-marker .spelling-tool .spelling-tool-button-container button{
+	background:transparent;
+	border:none;
+	color:#FFF;
+	width: 100px;
+	height:30px;
+	cursor: pointer;
+}
+.spelling-bee-marker .spelling-tool .spelling-tool-button-container button:hover{
+	background:#444;
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-suggestions-container{
+
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-suggestions-container ul{
+	margin:0;
+	padding:0;
+	background:#555;
+
+}
+
+.spelling-bee-marker .spelling-tool .spelling-tool-suggestions-container ul li{
+	color:#EEE;
+	font-size:14px;
+	list-style-type: none;
+	border-top:1px solid #777;
+	padding:7px 10px;
+	background:#666;
+}
+.spelling-bee-marker .spelling-tool .spelling-tool-suggestions-container ul li:hover{
+	background:#444;
+}

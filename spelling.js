@@ -5,6 +5,7 @@
  */
 
 var Spelling = function(){
+	console.log('spelling');
 	var text = {};
 	text.oldText = '';
 	text.newText = '';
@@ -64,9 +65,27 @@ var Spelling = function(){
 		return t;
 	}
 
-	//events
+
+	//do not get rid of
+	var positionTooltip = function(e){
+		var $el = $('<div style="z-index:5000; opacity: .5; width:5px; height:5px; background-color:#CCC; display:none; position:absolute; font-size:0;"></div>');
+		$('body').append($el)
+
+		var tip = $el;
+		if (e.keyCode == 65) {
+			var pos = $(this).getCaretPosition();
+			tip.css({
+				left: $(this).offset().left + pos.left,
+				top: $(this).offset().top + pos.top
+			}).show();
+		}
+
+	};
+	
+    //events
 	$(document).on('focus', 'input, textarea, [contenteditable=true]', getExistingText);
 	$(document).on('blur', 'input, textarea, [contenteditable=true]', getCurrentText);
+	$(document).on('keyup', 'input, textarea, [contenteditable=true]', positionTooltip);
 
 };
 

@@ -7,17 +7,17 @@
         "bookmarks",
         "http://public.noahhamann.com/"
     ],
-    "background": {
-        "scripts": ["spelling.js"],
-        "persistent": false
-    },
     "content_scripts": [
         {
             "matches": ["*://*/*"],
+            "css": [
+                "assets/css/spelling-content.css"
+            ],
             "js": [
                 "assets/js/lib/jquery-1.8.3.min.js",
                 "assets/js/lib/jsdiff.js",
-                "spelling.js"
+                "assets/js/lib/jquery.caretposition.js",
+                "spelling-content.js"
             ]
         }
     ],
