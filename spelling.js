@@ -1,3 +1,9 @@
+/* Spelling
+ * to do:
+ * filter out emails, urls and other words with symbols
+ * post to server more frequently (on space or second interval)
+ */
+
 var Spelling = function(){
 	var text = {};
 	text.oldText = '';
@@ -37,6 +43,7 @@ var Spelling = function(){
 		text.oldText = $.trim(text.oldText);
 
 		var addedWords = diffString(text.oldText, text.newText);
+		addedWords = cleanTerms(addedWords);
 		var val = addedWords.join();
 		if(addedWords.length > 0){
 			var val = addedWords.join();
@@ -48,14 +55,20 @@ var Spelling = function(){
 		text.newText = '';
 	};
 
+	var cleanTerms = function(t){
+		for(var i=0; i<t.length; i++){
+			if(t[i].length<3){
+				t.splice(i,1);
+			}
+		}
+		return t;
+	}
+
 	//events
-	$('input, textarea, [contenteditable=true]').focus(getExistingText);
-	$('input, textarea, [contenteditable=true]').blur(getCurrentText);
+	$(document).on('focus', 'input, textarea, [contenteditable=true]', getExistingText);
+	$(document).on('blur', 'input, textarea, [contenteditable=true]', getCurrentText);
 
-
-	return{
-		checkSpelling: checkSpelling
-	};
 };
 
 var spell = new Spelling();
+
