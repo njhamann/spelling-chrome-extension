@@ -34,7 +34,7 @@ $(function() {
 				.split(' ').join('<span style="white-space:prev-wrap">&nbsp;</span>');
 		},
 		// calculate position
-		getCaretPosition: function() {
+		getCaretPosition: function(pos) {
 			var cal = calculator, self = this, element = self[0], elementOffset = self.offset();
 			cal.simulator.empty();
 			// clone primary styles to imitate textarea
@@ -48,8 +48,8 @@ $(function() {
 				'height': self.height()
 			}, cal.specificStyle));
 
-			var value = self.val() ? self.val() : self.text(), 
-				cursorPosition = self.getCursorPosition();
+			var value = self.val() ? self.val() : self.text(); 
+			var	cursorPosition = pos ? pos : self.getCursorPosition();
 			
 			var beforeText = value.substring(0, cursorPosition),
 				afterText = value.substring(cursorPosition);
@@ -101,7 +101,6 @@ $(function() {
 	        if ('selectionStart' in thiz) {
 	            result = thiz.selectionStart;
 	        }else if('getSelection' in window){
-	        	console.log('contenteditable');
 	        	var range = window.getSelection();
 	        	result = range.anchorOffset;
 	        } else if('selection' in document) {
@@ -126,7 +125,6 @@ $(function() {
                     return result;
 	        	}
 	        }
-	        console.log(result);
 	        return result;
 	    },
 		getCaretPosition: calculator.getCaretPosition

@@ -1,108 +1,195 @@
-// @author Rob W       http://stackoverflow.com/users/938089/rob-w
-// @name               getTextBoundingRect
-// @param input          Required HTMLElement with `value` attribute
-// @param selectionStart Optional number: Start offset. Default 0
-// @param selectionEnd   Optional number: End offset. Default selectionStart
-// @param debug          Optional boolean. If true, the created test layer
-//                         will not be removed.
-function getTextBoundingRect(input, selectionStart, selectionEnd, debug) {
-    // Basic parameter validation
-    if(!input || !('value' in input)) return input;
-    if(typeof selectionStart == "string") selectionStart = parseFloat(selectionStart);
-    if(typeof selectionStart != "number" || isNaN(selectionStart)) {
-        selectionStart = 0;
-    }
-    if(selectionStart < 0) selectionStart = 0;
-    else selectionStart = Math.min(input.value.length, selectionStart);
-    if(typeof selectionEnd == "string") selectionEnd = parseFloat(selectionEnd);
-    if(typeof selectionEnd != "number" || isNaN(selectionEnd) || selectionEnd < selectionStart) {
-        selectionEnd = selectionStart;
-    }
-    if (selectionEnd < 0) selectionEnd = 0;
-    else selectionEnd = Math.min(input.value.length, selectionEnd);
+if (!window.maxkir) maxkir = {};
+maxkir.FF = /Firefox/i.test(navigator.userAgent);
 
-    // If available (thus IE), use the createTextRange method
-    if (typeof input.createTextRange == "function") {
-        var range = input.createTextRange();
-        range.collapse(true);
-        range.moveStart('character', selectionStart);
-        range.moveEnd('character', selectionEnd - selectionStart);
-        return range.getBoundingClientRect();
-    }
-    // createTextRange is not supported, create a fake text range
-    var offset = getInputOffset(),
-        topPos = offset.top,
-        leftPos = offset.left,
-        width = getInputCSS('width', true),
-        height = getInputCSS('height', true);
-
-        // Styles to simulate a node in an input field
-    var cssDefaultStyles = "white-space:pre;padding:0;margin:0;",
-        listOfModifiers = ['direction', 'font-family', 'font-size', 'font-size-adjust', 'font-variant', 'font-weight', 'font-style', 'letter-spacing', 'line-height', 'text-align', 'text-indent', 'text-transform', 'word-wrap', 'word-spacing'];
-
-    topPos += getInputCSS('padding-top', true);
-    topPos += getInputCSS('border-top-width', true);
-    leftPos += getInputCSS('padding-left', true);
-    leftPos += getInputCSS('border-left-width', true);
-    leftPos += 1; //Seems to be necessary
-
-    for (var i=0; i<listOfModifiers.length; i++) {
-        var property = listOfModifiers[i];
-        cssDefaultStyles += property + ':' + getInputCSS(property) +';';
-    }
-    // End of CSS variable checks
-
-    var text = input.value,
-        textLen = text.length,
-        fakeClone = document.createElement("div");
-    if(selectionStart > 0) appendPart(0, selectionStart);
-    var fakeRange = appendPart(selectionStart, selectionEnd);
-    if(textLen > selectionEnd) appendPart(selectionEnd, textLen);
-
-    // Styles to inherit the font styles of the element
-    fakeClone.style.cssText = cssDefaultStyles;
-
-    // Styles to position the text node at the desired position
-    fakeClone.style.position = "absolute";
-    fakeClone.style.top = topPos + "px";
-    fakeClone.style.left = leftPos + "px";
-    fakeClone.style.width = width + "px";
-    fakeClone.style.height = height + "px";
-    document.body.appendChild(fakeClone);
-    var returnValue = fakeRange.getBoundingClientRect(); //Get rect
-
-    if (!debug) fakeClone.parentNode.removeChild(fakeClone); //Remove temp
-    return returnValue;
-
-    // Local functions for readability of the previous code
-    function appendPart(start, end){
-        var span = document.createElement("span");
-        span.style.cssText = cssDefaultStyles; //Force styles to prevent unexpected results
-        span.textContent = text.substring(start, end);
-        fakeClone.appendChild(span);
-        return span;
-    }
-    // Computing offset position
-    function getInputOffset(){
-        var body = document.body,
-            win = document.defaultView,
-            docElem = document.documentElement,
-            box = document.createElement('div');
-        box.style.paddingLeft = box.style.width = "1px";
-        body.appendChild(box);
-        var isBoxModel = box.offsetWidth == 2;
-        body.removeChild(box);
-        box = input.getBoundingClientRect();
-        var clientTop  = docElem.clientTop  || body.clientTop  || 0,
-            clientLeft = docElem.clientLeft || body.clientLeft || 0,
-            scrollTop  = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop,
-            scrollLeft = win.pageXOffset || isBoxModel && docElem.scrollLeft || body.scrollLeft;
-        return {
-            top : box.top  + scrollTop  - clientTop,
-            left: box.left + scrollLeft - clientLeft};
-    }
-    function getInputCSS(prop, isnumber){
-        var val = document.defaultView.getComputedStyle(input, null).getPropertyValue(prop);
-        return isnumber ? parseFloat(val) : val;
-    }
+// Unify access to computed styles (for IE)
+if (typeof document.defaultView == 'undefined') {
+  document.defaultView = {};
+  document.defaultView.getComputedStyle = function(element){
+    return element.currentStyle;
+  }
 }
+
+// This class allows to obtain position of cursor in the text area
+// The position can be calculated as cursorX/cursorY or
+// pointX/pointY
+// See getCursorCoordinates and getPixelCoordinates
+maxkir.CursorPosition = function(element, padding) {
+  this.element = element;
+  this.padding = padding;
+  this.selection_range = new maxkir.SelectionRange(element);
+
+  var that = this;
+
+  this.get_string_metrics = function(s) {
+    return maxkir.CursorPosition.getTextMetrics(element, s, padding);
+  };
+
+  var splitter = new maxkir.StringSplitter(function(s) {
+    var metrics = that.get_string_metrics(s);
+    //maxkir.info(s + " |||" + metrics)
+    return metrics[0];
+  });
+
+  this.split_to_lines = function() {
+    var innerAreaWidth = element.scrollWidth;
+    if (maxkir.FF) {  // FF has some implicit additional padding
+      innerAreaWidth -= 4;
+    }
+
+    var pos = that.selection_range.get_selection_range()[0];
+    return splitter.splitString(element.value.substr(0, pos), innerAreaWidth);
+  };
+
+};
+
+maxkir.CursorPosition.prototype.getCursorCoordinates = function() {
+  var lines = this.split_to_lines();
+  return [lines[lines.length - 1].length, lines.length];
+};
+
+maxkir.CursorPosition.prototype.getPixelCoordinates = function() {
+  var lines = this.split_to_lines();
+  var m = this.get_string_metrics(lines[lines.length - 1]);
+  var w = m[0];
+  var h = m[1] * lines.length - this.element.scrollTop + this.padding;
+  return [w, h];
+};
+
+/** Return preferred [width, height] of the text as if it was written inside styledElement (textarea)
+ * @param styledElement element to copy styles from
+ * @s text for metrics calculation
+ * @padding - explicit additional padding
+ * */
+maxkir.CursorPosition.getTextMetrics = function(styledElement, s, padding) {
+
+  var element = styledElement;
+  var clone_css_style = function(target, styleName) {
+    var val = element.style[styleName];
+    if (!val) {
+      var css = document.defaultView.getComputedStyle(element, null);
+      val = css ? css[styleName] : null;
+    }
+    if (val) {
+      target.style[styleName] = val;
+    }
+  };
+
+  var widthElementId = "__widther";
+  var div = document.getElementById(widthElementId);
+  if (!div) {
+    div = document.createElement("div");
+    document.body.appendChild(div)
+    div.id = widthElementId;
+
+    div.style.position = 'absolute';
+    div.style.left = '-10000px';
+  }
+
+  clone_css_style(div, 'fontSize');
+  clone_css_style(div, 'fontFamily');
+  clone_css_style(div, 'fontWeight');
+  clone_css_style(div, 'fontVariant');
+  clone_css_style(div, 'fontStyle');
+  clone_css_style(div, 'textTransform');
+  clone_css_style(div, 'lineHeight');
+
+  div.style.width = '0';
+  div.style.paddingLeft = padding + "px";
+
+  div.innerHTML = s.replace(' ', "&nbsp;");
+  div.style.width = 'auto';
+  return [div.offsetWidth, div.offsetHeight];
+
+};
+
+maxkir.SelectionRange = function(element) {
+  this.element = element;
+};
+
+
+maxkir.SelectionRange.prototype.get_selection_range = function() {
+
+  var get_sel_range = function(element) {
+    // thanks to http://the-stickman.com/web-development/javascript/finding-selection-cursor-position-in-a-textarea-in-internet-explorer/
+    if( (typeof element.selectionStart == 'undefined') && document.selection ){
+      // The current selection
+      var range = document.selection.createRange();
+      // We'll use this as a 'dummy'
+      var stored_range = range.duplicate();
+      // Select all text
+      if (element.type == 'text') {
+        stored_range.moveStart('character', -element.value.length);
+        stored_range.moveEnd('character', element.value.length);
+      } else { // textarea
+        stored_range.moveToElementText( element );
+      }
+      // Now move 'dummy' end point to end point of original range
+      stored_range.setEndPoint( 'EndToEnd', range );
+      // Now we can calculate start and end points
+      var selectionStart = stored_range.text.length - range.text.length;
+      var selectionEnd = selectionStart + range.text.length;
+      return [selectionStart, selectionEnd];
+    }
+    return [element.selectionStart, element.selectionEnd];
+  };
+
+  try {
+    return get_sel_range(this.element);
+  }
+  catch(e) {
+    return [0,0]
+  }
+};
+
+maxkir.SelectionRange.prototype.get_selection_text = function() {
+  var r = this.get_selection_range();
+  return this.element.value.substring(r[0], r[1]);
+};
+
+// width_provider_function is a function which takes one argument - a string
+// and returns width of the string
+maxkir.StringSplitter = function(width_provider_function) {
+  this.get_width = width_provider_function;
+};
+
+// returns array of strings, as if they are splitted in textarea
+maxkir.StringSplitter.prototype.splitString = function(s, max_width) {
+
+  if (s.length == 0) return [""];
+  
+  var prev_space_pos = -1;
+  var width_exceeded = false;
+
+  var that = this;
+  var cut_off = function(idx) {
+    var remaining = s.substr(idx + 1);
+    if (remaining.length > 0) {
+      return [s.substr(0, idx + 1)].concat(that.splitString(remaining, max_width));
+    }
+    return [s.substr(0, idx + 1)]; 
+  };
+
+  for(var i = 0; i < s.length; i ++) {
+    if (s.charAt(i) == ' ') {
+
+      width_exceeded = this.get_width(s.substr(0, i)) > max_width;
+      if (width_exceeded && prev_space_pos > 0) {
+        return cut_off(prev_space_pos);
+      }
+      if (width_exceeded) {
+        return cut_off(i);
+      }
+      prev_space_pos = i;
+    }
+    if (s.charAt(i) == '\n') {
+      return cut_off(i);
+    }
+  }
+
+  if (prev_space_pos > 0 && this.get_width(s) > max_width) {
+    return cut_off(prev_space_pos);
+  }
+  return [s];
+};
+
+
