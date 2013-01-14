@@ -89,7 +89,7 @@ var Spelling = function(){
 		var html = 
 			'<div class="spelling-tool-correction-container">'+
 				'<p data-term="'+term+'">'+node.innerHTML+'</p>'+
-				'<input type="text" value="" />'+
+				'<input placeholder="Spell the word above..." type="text" value="" />'+
 			'</div>'+
 			'<div class="spelling-tool-button-container">'+
 				'<button id="spelling_tool_hint_button" type="button">Hint</button>'+
@@ -180,7 +180,6 @@ var Spelling = function(){
 
 	$(document).on('focus', 'input, textarea, [contenteditable=true]', getExistingText);
 	$(document).on('blur', 'input, textarea, [contenteditable=true]', getCurrentText);
-	
     $(document).on('mouseenter', '.spelling-bee-marker', displaySpellPopup).on('mouseleave', '.spelling-bee-marker', hideSpellPopup);
 	$(document).on('click', '.spelling-tool-suggestions-container li', updateValue);
 	$(document).on('click', 'button#spelling_tool_hint_button', showHint);
