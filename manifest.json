@@ -4,12 +4,17 @@
     "description": "Spell Better!",
     "permissions": [
         "tabs",
+        "storage",
         "bookmarks",
-        "http://public.noahhamann.com/"
+        "*://*/*",
+        "http://public.noahhamann.com/",
+        "http://*/"
     ],
     "content_scripts": [
         {
-            "matches": ["*://*/*"],
+            "matches": [
+                "*://*/*"
+            ],
             "css": [
                 "assets/css/spelling-content.css"
             ],
@@ -21,6 +26,10 @@
             ]
         }
     ],
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    },
     "icons": { 
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
@@ -31,6 +40,5 @@
         "default_icon": "icons/icon.png",
         "default_popup": "popup.html"
     },
-    "manifest_version": 2,
-    "content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'"
+    "manifest_version": 2
 }

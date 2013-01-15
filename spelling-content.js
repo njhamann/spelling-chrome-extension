@@ -45,7 +45,12 @@ var Spelling = function(){
 		var val = addedWords.join();
 		if(addedWords.length > 0){
 			var val = addedWords.join();
-			checkSpelling(val, displaySpellMarker);
+
+			chrome.extension.sendMessage({terms: val}, function(response) {
+  				console.log(response.message);
+			});
+
+			//checkSpelling(val, displaySpellMarker);
 		}
 	};
 	
